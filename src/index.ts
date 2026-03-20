@@ -3,6 +3,8 @@ import './config.js'; // do not remove this line
 import { loginUser, registerUser } from './controllers/UserController.js';
 import { sessionMiddleware } from './sessionConfig.js';
 
+import { initializeDatabase } from './dataSource.js';
+
 const app: Express = express();
 
 app.use(sessionMiddleware); // Setup session management middleware
@@ -18,6 +20,12 @@ app.use(express.static('public', { extensions: ['html'] }));
 app.post('/register', registerUser);
 app.post('/login', loginUser);
 
-app.listen(process.env.PORT, () => {
-  console.log(`Server listening on http://localhost:${process.env.PORT}`);
-});
+const startServer = async () => {
+  await initializeDatabase();
+
+  app.listen(process.env.PORT, () => {
+    console.log(`Server listening on http://localhost:${process.env.PORT}`);
+  });
+};
+
+startServer();

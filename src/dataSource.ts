@@ -25,4 +25,11 @@ export const AppDataSource = new DataSource({
   database: process.env.DB_NAME,
 });
 
-await AppDataSource.initialize();
+export const initializeDatabase = async () => {
+  try {
+    await AppDataSource.initialize();
+    console.log('Database Connected');
+  } catch (error) {
+    console.error('Database Connection failed:', error);
+  }
+};
