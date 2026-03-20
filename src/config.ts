@@ -1,5 +1,5 @@
 import 'dotenv/config';
-import { Session } from 'express-session';
+import session from 'express-session';
 
 const requiredEnvVars = ['PORT', 'COOKIE_SECRET'] as const;
 
@@ -13,12 +13,9 @@ for (const varName of requiredEnvVars) {
   }
 }
 
-// Must use a function expression here so that `this` is bound to the Session object
-Session.prototype.clearSession = async function clearSession(): Promise<void> {
-  // Must use an arrow function here so that it does not rebind `this`
+(session as any).Session.prototype.clearSession = async function clearSession(): Promise<void> {
   return new Promise((resolve, reject) => {
-    // `this` refers to the Session object itself
-    this.regenerate((err) => {
+    this.regenerate((err: any) => {
       if (err) reject(err);
       resolve();
     });

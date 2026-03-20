@@ -24,6 +24,7 @@
     "@types/multer": "^2.0.0",
     "@types/node": "^25.0.9",
     "@types/nodemailer": "^7.0.5",
+    "@types/uuid": "^10.0.0",
     "@typescript-eslint/eslint-plugin": "^8.53.1",
     "@typescript-eslint/parser": "^8.53.1",
     "browser-sync": "^3.0.4",
@@ -42,7 +43,9 @@
     "typescript-eslint": "^8.53.1"
   },
   "dependencies": {
+    "@types/bcrypt": "^6.0.0",
     "argon2": "^0.44.0",
+    "bcrypt": "^6.0.0",
     "chalk": "^5.6.2",
     "connect-pg-simple": "^10.0.0",
     "date-fns": "^4.1.0",
@@ -54,7 +57,8 @@
     "multer": "^2.0.2",
     "nodemailer": "^7.0.12",
     "reflect-metadata": "^0.2.2",
-    "typeorm": "^0.3.6",
+    "typeorm": "^0.3.28",
+    "uuid": "^13.0.0",
     "zod": "^4.3.5"
   }
 }

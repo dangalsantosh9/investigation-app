@@ -1,5 +1,6 @@
 import express, { Express } from 'express';
 import './config.js'; // do not remove this line
+import { loginUser, registerUser } from './controllers/UserController.js';
 import { sessionMiddleware } from './sessionConfig.js';
 
 const app: Express = express();
@@ -14,7 +15,8 @@ app.use(express.urlencoded({ extended: false })); // Setup urlencoded (HTML Form
 app.use(express.static('public', { extensions: ['html'] }));
 
 // -- Routes --------------------------------------------------
-// Register your routes below this line
+app.post('/register', registerUser);
+app.post('/login', loginUser);
 
 app.listen(process.env.PORT, () => {
   console.log(`Server listening on http://localhost:${process.env.PORT}`);
