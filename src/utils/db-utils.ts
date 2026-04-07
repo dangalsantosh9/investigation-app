@@ -1,3 +1,4 @@
+/// <reference path="../types/utils.d.ts" />
 import { QueryFailedError } from 'typeorm';
 
 function parseDatabaseError(err: unknown): DatabaseConstraintError {

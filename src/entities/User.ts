@@ -12,6 +12,15 @@ export class User {
   @Column()
   passwordHash!: string;
 
+  @Column({ nullable: true })
+  fullName!: string;
+
+  @Column({ default: 'member' })
+  role!: string;
+
+  @Column({ default: 0 })
+  profileViews!: number;
+
   @BeforeInsert()
   generateId() {
     this.id = uuidv7();

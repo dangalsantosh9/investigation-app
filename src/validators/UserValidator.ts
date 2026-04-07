@@ -5,4 +5,9 @@ const createUserSchema = z.object({
   password: z.string().min(6),
 });
 
-export { createUserSchema };
+const updateUserSchema = z.object({
+  fullName: z.string().min(1, 'Full name is required'),
+  email: z.string().email(),
+});
+
+export { createUserSchema, updateUserSchema };

@@ -4,9 +4,9 @@
   "scripts": {
     "build": "npx tsc",
     "start": "node --es-module-specifier-resolution=node --no-warning ./dist/index.js",
-    "compile": "npm run clean && npx tsc --watch",
+    "compile": "npx tsc --build --watch",
     "clean": "rimraf ./dist/",
-    "start-dev": "node --es-module-specifier-resolution=node --no-warnings --watch ./dist/index.js",
+    "start-dev": "node --no-warnings --watch ./dist/index.js",
     "start-dev-browserSync": "node --no-warnings --watch bsync.mjs",
     "start-dev-ui": "concurrently -c cyan,green -n server,browserSync \"npm:start-dev\" \"npm:start-dev-browserSync\"",
     "start-once": "node --es-module-specifier-resolution=node --no-warnings ./dist/index.js",

@@ -1,9 +1,15 @@
 import express, { Express } from 'express';
 import './config.js'; // do not remove this line
-import { loginUser, registerUser } from './controllers/UserController.js';
-import { sessionMiddleware } from './sessionConfig.js';
-
+import {
+  getUserProfile,
+  listUsers,
+  loginUser,
+  logoutUser,
+  registerUser,
+  updateProfile,
+} from './controllers/UserController.js';
 import { initializeDatabase } from './dataSource.js';
+import { sessionMiddleware } from './sessionConfig.js';
 
 const app: Express = express();
 
@@ -16,13 +22,18 @@ app.use(express.urlencoded({ extended: false })); // Setup urlencoded (HTML Form
 // Only put file that you actually want to be publicly accessibly in the `public` folder
 app.use(express.static('public', { extensions: ['html'] }));
 
-// -- Routes --------------------------------------------------
+// -- Auth Routes --
 app.post('/register', registerUser);
 app.post('/login', loginUser);
+app.delete('/logout', logoutUser);
+
+// -- User Routes --
+app.get('/users', listUsers);
+app.get('/users/:userId/profile', getUserProfile);
+app.patch('/users/:userId/profile', updateProfile);
 
 const startServer = async () => {
   await initializeDatabase();
-
   app.listen(process.env.PORT, () => {
     console.log(`Server listening on http://localhost:${process.env.PORT}`);
   });
