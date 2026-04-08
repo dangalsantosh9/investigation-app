@@ -1,0 +1,16 @@
+meta {
+  name: accessing profile without being logged in
+  type: http
+  seq: 11
+}
+
+get {
+  url: http://localhost:7715/users/019d692a-faf0-777c-96cd-067d6242cad9/profile
+  body: json
+  auth: inherit
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

@@ -1,0 +1,16 @@
+meta {
+  name: Logout
+  type: http
+  seq: 10
+}
+
+delete {
+  url: http://localhost:7715/logout
+  body: json
+  auth: inherit
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

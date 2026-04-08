@@ -8,6 +8,14 @@ import {
   registerUser,
   updateProfile,
 } from './controllers/UserController.js';
+
+import {
+  closeCaseById,
+  createNewCase,
+  editCase,
+  getCase,
+  listCases,
+} from './controllers/CaseController.js';
 import { initializeDatabase } from './dataSource.js';
 import { sessionMiddleware } from './sessionConfig.js';
 
@@ -31,6 +39,27 @@ app.delete('/logout', logoutUser);
 app.get('/users', listUsers);
 app.get('/users/:userId/profile', getUserProfile);
 app.patch('/users/:userId/profile', updateProfile);
+// case routes
+app.post('/cases', createNewCase);
+app.get('/cases', listCases);
+app.get('/cases/:caseId', getCase);
+app.patch('/cases/:caseId', editCase);
+app.patch('/cases/:caseId/close', closeCaseById);
+
+// TEMPORARY - remove after testing
+app.patch('/users/:userId/make-supervisor', async (req, res) => {
+  const { AppDataSource } = await import('./dataSource.js');
+  const { User } = await import('./entities/User.js');
+  const userRepo = AppDataSource.getRepository(User);
+  const user = await userRepo.findOne({ where: { id: req.params.userId } });
+  if (!user) {
+    res.sendStatus(404);
+    return;
+  }
+  user.role = 'supervisor';
+  await userRepo.save(user);
+  res.json({ message: 'User promoted to supervisor', user });
+});
 
 const startServer = async () => {
   await initializeDatabase();

@@ -1,0 +1,23 @@
+meta {
+  name: Update profile
+  type: http
+  seq: 8
+}
+
+patch {
+  url: http://localhost:7715/users/019d692a-faf0-777c-96cd-067d6242cad9/profile
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "fullName": "New User",
+    "email": "newuser@test.com"
+  }
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}
