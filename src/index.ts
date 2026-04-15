@@ -16,6 +16,15 @@ import {
   getCase,
   listCases,
 } from './controllers/CaseController.js';
+
+import {
+  assignTaskToUser,
+  createNewTask,
+  editTask,
+  getTask,
+  listTasksForCase,
+  updateTaskStatus,
+} from './controllers/TaskController.js';
 import { initializeDatabase } from './dataSource.js';
 import { sessionMiddleware } from './sessionConfig.js';
 
@@ -46,7 +55,15 @@ app.get('/cases/:caseId', getCase);
 app.patch('/cases/:caseId', editCase);
 app.patch('/cases/:caseId/close', closeCaseById);
 
-// TEMPORARY - remove after testing
+// task routes
+app.post('/cases/:caseId/tasks', createNewTask);
+app.get('/cases/:caseId/tasks', listTasksForCase);
+app.get('/tasks/:taskId', getTask);
+app.patch('/tasks/:taskId', editTask);
+app.patch('/tasks/:taskId/assign', assignTaskToUser);
+app.patch('/tasks/:taskId/status', updateTaskStatus);
+
+//- will be deleting after testing is done
 app.patch('/users/:userId/make-supervisor', async (req, res) => {
   const { AppDataSource } = await import('./dataSource.js');
   const { User } = await import('./entities/User.js');

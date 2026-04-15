@@ -1,0 +1,24 @@
+meta {
+  name: Edit Task
+  type: http
+  seq: 23
+}
+
+patch {
+  url: http://localhost:7715/tasks/019d923a-fd64-707c-ba1d-cb6a65273a6c
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "title": "Task 1 Updated",
+    "description": "Updated description",
+    "dueDate": "2025-11-15"
+  }
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

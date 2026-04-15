@@ -4,10 +4,20 @@ meta {
   seq: 27
 }
 
-get {
-  url: 
-  body: none
+patch {
+  url: http://localhost:7715/cases/019d6b24-9298-72ed-95dc-456635fe9a3c
+  body: json
   auth: inherit
+}
+
+body:json {
+  {
+    "title": "Investigation Case 1 Updated",
+    "description": "Updated description",
+    "priority": "low",
+    "status": "in_progress",
+    "dueDate": "2025-12-31"
+  }
 }
 
 settings {

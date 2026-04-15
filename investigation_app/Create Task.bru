@@ -1,0 +1,24 @@
+meta {
+  name: Create Task
+  type: http
+  seq: 15
+}
+
+post {
+  url: http://localhost:7715/cases/019d9239-c721-70be-ae8b-0485317a96d2/tasks
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "title": "Task 1",
+    "description": "First task for this case",
+    "dueDate": "2025-12-01"
+  }
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

@@ -5,9 +5,13 @@ meta {
 }
 
 get {
-  url: 
-  body: none
+  url: http://localhost:7715/cases?status=open
+  body: json
   auth: inherit
+}
+
+params:query {
+  status: open
 }
 
 settings {

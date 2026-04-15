@@ -1,0 +1,22 @@
+meta {
+  name: Assign task to a user
+  type: http
+  seq: 21
+}
+
+patch {
+  url: http://localhost:7715/tasks/019d923a-fd64-707c-ba1d-cb6a65273a6c/assign
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "userId": "019d6439-f0a2-746f-aa04-d48224941690"
+  }
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}
