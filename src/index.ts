@@ -17,6 +17,12 @@ import {
   listCases,
 } from './controllers/CaseController.js';
 
+import { getAssignedTasks, getDashboardSummary } from './controllers/DashboardController.js';
+import {
+  downloadEvidence,
+  getTaskEvidence,
+  uploadEvidence,
+} from './controllers/EvidenceController.js';
 import {
   assignTaskToUser,
   createNewTask,
@@ -25,7 +31,10 @@ import {
   listTasksForCase,
   updateTaskStatus,
 } from './controllers/TaskController.js';
+import { getCaseTimeline } from './controllers/TimelineController.js';
+import { editTaskUpdate, getTaskUpdates, postUpdate } from './controllers/UpdateController.js';
 import { initializeDatabase } from './dataSource.js';
+import { upload } from './middleware/upload.js';
 import { sessionMiddleware } from './sessionConfig.js';
 
 const app: Express = express();
@@ -54,6 +63,7 @@ app.get('/cases', listCases);
 app.get('/cases/:caseId', getCase);
 app.patch('/cases/:caseId', editCase);
 app.patch('/cases/:caseId/close', closeCaseById);
+app.get('/cases/:caseId/timeline', getCaseTimeline);
 
 // task routes
 app.post('/cases/:caseId/tasks', createNewTask);
@@ -62,6 +72,20 @@ app.get('/tasks/:taskId', getTask);
 app.patch('/tasks/:taskId', editTask);
 app.patch('/tasks/:taskId/assign', assignTaskToUser);
 app.patch('/tasks/:taskId/status', updateTaskStatus);
+
+// -- Update Routes --
+app.post('/tasks/:taskId/updates', postUpdate);
+app.get('/tasks/:taskId/updates', getTaskUpdates);
+app.patch('/updates/:updateId', editTaskUpdate);
+
+// -- Evidence Routes --
+app.post('/tasks/:taskId/evidence', upload.single('file'), uploadEvidence);
+app.get('/tasks/:taskId/evidence', getTaskEvidence);
+app.get('/evidence/:evidenceId/download', downloadEvidence);
+
+// -- Dashboard Routes --
+app.get('/users/:userId/tasks', getAssignedTasks);
+app.get('/users/:userId/dashboard', getDashboardSummary);
 
 //- will be deleting after testing is done
 app.patch('/users/:userId/make-supervisor', async (req, res) => {

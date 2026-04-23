@@ -1,0 +1,23 @@
+meta {
+  name: Add text note evidence
+  type: http
+  seq: 26
+}
+
+post {
+  url: http://localhost:7715/tasks/019d923a-fd64-707c-ba1d-cb6a65273a6c/evidence
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "type": "note",
+    "note": "Found important document at the scene"
+  }
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

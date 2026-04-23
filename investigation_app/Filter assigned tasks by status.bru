@@ -1,0 +1,20 @@
+meta {
+  name: Filter assigned tasks by status
+  type: http
+  seq: 36
+}
+
+get {
+  url: http://localhost:7715/users/019d6439-f0a2-746f-aa04-d48224941690/tasks?status=in_progress
+  body: json
+  auth: inherit
+}
+
+params:query {
+  status: in_progress
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

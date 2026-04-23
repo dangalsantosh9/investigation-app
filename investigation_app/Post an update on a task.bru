@@ -1,0 +1,22 @@
+meta {
+  name: Post an update on a task
+  type: http
+  seq: 20
+}
+
+post {
+  url: http://localhost:7715/tasks/019d923a-fd64-707c-ba1d-cb6a65273a6c/updates
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "message": "Making progress on this task"
+  }
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

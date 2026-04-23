@@ -4,7 +4,7 @@ import { Task } from './Task.js';
 import { User } from './User.js';
 
 @Entity()
-export class Update {
+export class TaskUpdate {
   @PrimaryColumn('uuid') id!: string;
 
   @Column() message!: string;
@@ -13,7 +13,7 @@ export class Update {
 
   @Column({ nullable: true }) editedAt!: Date;
 
-  @ManyToOne(() => TextTrackList, { nullable: false }) task!: Relation<Task>;
+  @ManyToOne(() => Task, { nullable: false }) task!: Relation<Task>;
 
   @ManyToOne(() => User, { nullable: false }) createdBy!: Relation<User>;
 

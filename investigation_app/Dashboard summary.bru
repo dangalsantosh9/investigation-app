@@ -1,0 +1,16 @@
+meta {
+  name: Dashboard summary
+  type: http
+  seq: 32
+}
+
+get {
+  url: http://localhost:7715/users/019d6439-f0a2-746f-aa04-d48224941690/dashboard
+  body: json
+  auth: inherit
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

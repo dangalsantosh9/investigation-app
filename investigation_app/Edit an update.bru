@@ -1,0 +1,22 @@
+meta {
+  name: Edit an update
+  type: http
+  seq: 24
+}
+
+patch {
+  url: http://localhost:7715/updates/019dbac3-6fc8-74a0-b8b5-8701ba8bb0ca
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "message": "Updated progress note"
+  }
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}
