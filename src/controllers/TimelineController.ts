@@ -46,7 +46,10 @@ async function getCaseTimeline(req: Request, res: Response): Promise<void> {
         order: { uploadedAt: 'ASC' },
       });
       return {
-        task,
+        id: task.id,
+        title: task.title,
+        status: task.status,
+        createdAt: task.createdAt,
         updates,
         evidence,
       };

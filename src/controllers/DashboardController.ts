@@ -48,6 +48,14 @@ async function getDashboardSummary(req: Request, res: Response): Promise<void> {
   threeDaysFromNow.setDate(now.getDate() + 3);
   const allTasks = await taskRepo.find({
     where: { assignedTo: { id: userId } as any },
+    relations: { caseEntity: true },
+    select: {
+      id: true,
+      title: true,
+      status: true,
+      dueDate: true,
+      caseEntity: { id: true, title: true },
+    },
   });
   const overdue = allTasks.filter(
     (t) => t.dueDate && new Date(t.dueDate) < now && t.status !== 'completed',
@@ -59,15 +67,6 @@ async function getDashboardSummary(req: Request, res: Response): Promise<void> {
       new Date(t.dueDate) <= threeDaysFromNow &&
       t.status !== 'completed',
   );
-  res.json({
-    summary: {
-      total: allTasks.length,
-      overdue: overdue.length,
-      dueSoon: dueSoon.length,
-      completed: allTasks.filter((t) => t.status === 'completed').length,
-      inProgress: allTasks.filter((t) => t.status === 'in_progress').length,
-      pending: allTasks.filter((t) => t.status === 'pending').length,
-    },
-  });
+  res.json({ overdue, dueSoon });
 }
 export { getAssignedTasks, getDashboardSummary };

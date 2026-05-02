@@ -23,7 +23,7 @@ async function createTask(
 async function getTaskById(id: string): Promise<Task | null> {
   return await taskRepository.findOne({
     where: { id },
-    relations: { createdBy: true, assignedTo: true },
+    relations: { createdBy: true, assignedTo: true, caseEntity: true },
     select: {
       id: true,
       title: true,
@@ -35,6 +35,7 @@ async function getTaskById(id: string): Promise<Task | null> {
       updatedAt: true,
       createdBy: { id: true, email: true, fullName: true },
       assignedTo: { id: true, email: true, fullName: true },
+      caseEntity: { id: true, status: true },
     },
   });
 }
@@ -70,6 +71,7 @@ async function updateTask(
   title: string,
   description: string,
   dueDate: Date | null,
+  assignedTo: User | null,
 ): Promise<Task | null> {
   const task = await taskRepository.findOne({ where: { id } });
   if (!task) {
@@ -79,6 +81,7 @@ async function updateTask(
   task.description = description;
   task.dueDate = dueDate ?? task.dueDate;
   task.updatedAt = new Date();
+  if (assignedTo != null) task.assignedTo = assignedTo;
   return await taskRepository.save(task);
 }
 async function changeTaskStatus(id: string, status: string): Promise<Task | null> {

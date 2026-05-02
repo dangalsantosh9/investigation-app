@@ -5,11 +5,18 @@ import {
   findUserByEmail,
   getAllUsers,
   getUserById,
+  getUserWithPassword,
   incrementProfileViews,
+  updateUserPassword,
   updateUserProfile,
 } from '../models/UserModel.js';
 import { parseDatabaseError } from '../utils/db-utils.js';
-import { createUserSchema, updateUserSchema } from '../validators/UserValidator.js';
+import {
+  changePasswordSchema,
+  createUserSchema,
+  loginUserSchema,
+  updateUserSchema,
+} from '../validators/UserValidator.js';
 
 async function registerUser(req: Request, res: Response): Promise<void> {
   const result = createUserSchema.safeParse(req.body);
@@ -18,11 +25,11 @@ async function registerUser(req: Request, res: Response): Promise<void> {
     return;
   }
 
-  const { email, password } = result.data;
+  const { email, password, fullName } = result.data;
 
   try {
     const passwordHash = await argon2.hash(password);
-    const newUser = await createUser(email, passwordHash);
+    const newUser = await createUser(email, passwordHash, fullName);
     res.status(201).json({ id: newUser.id, email: newUser.email });
   } catch (err) {
     console.error(err);
@@ -32,7 +39,7 @@ async function registerUser(req: Request, res: Response): Promise<void> {
 }
 
 async function loginUser(req: Request, res: Response): Promise<void> {
-  const result = createUserSchema.safeParse(req.body);
+  const result = loginUserSchema.safeParse(req.body);
   if (!result.success) {
     res.status(400).json(result.error.flatten());
     return;
@@ -56,7 +63,15 @@ async function loginUser(req: Request, res: Response): Promise<void> {
     await req.session.clearSession();
     req.session.userId = user.id;
     req.session.email = user.email;
+    req.session.fullName = user.fullName;
     req.session.role = user.role;
+    req.session.isLoggedIn = true;
+    req.session.authenticatedUser = {
+      userId: user.id,
+      email: user.email,
+      fullName: user.fullName,
+      role: user.role,
+    };
     res.status(200).json({ message: 'Login successful' });
   } catch (err) {
     console.error(err);
@@ -137,4 +152,79 @@ async function listUsers(req: Request, res: Response): Promise<void> {
   res.json({ users });
 }
 
-export { getUserProfile, listUsers, loginUser, logoutUser, registerUser, updateProfile };
+function getMe(req: Request, res: Response): void {
+  if (!req.session.isLoggedIn) {
+    res.sendStatus(401);
+    return;
+  }
+  res.json(req.session.authenticatedUser);
+}
+
+async function changePassword(req: Request, res: Response): Promise<void> {
+  if (!req.session.userId) {
+    res.sendStatus(401);
+    return;
+  }
+
+  const { userId } = req.params;
+
+  if (req.session.userId !== userId) {
+    res.sendStatus(403);
+    return;
+  }
+
+  const result = changePasswordSchema.safeParse(req.body);
+  if (!result.success) {
+    res.status(400).json(result.error.flatten());
+    return;
+  }
+
+  const { currentPassword, newPassword } = result.data;
+
+  const user = await getUserWithPassword(userId);
+  if (!user) {
+    res.status(404).json({ error: 'User not found' });
+    return;
+  }
+
+  const passwordMatches = await argon2.verify(user.passwordHash, currentPassword);
+  if (!passwordMatches) {
+    res.sendStatus(403);
+    return;
+  }
+
+  const newPasswordHash = await argon2.hash(newPassword);
+  await updateUserPassword(userId, newPasswordHash);
+  res.json({ message: 'Password changed successfully' });
+}
+//forgot password thing
+async function forgotPassword(req: Request, res: Response): Promise<void> {
+  const { email, newPassword } = req.body;
+
+  if (!email || !newPassword || newPassword.length < 6) {
+    res.status(400).json({ error: 'Invalid input' });
+    return;
+  }
+
+  const user = await findUserByEmail(email);
+  if (!user) {
+    res.status(404).json({ error: 'No account found with that email' });
+    return;
+  }
+
+  const newPasswordHash = await argon2.hash(newPassword);
+  await updateUserPassword(user.id, newPasswordHash);
+  res.json({ message: 'Password reset successfully' });
+}
+
+export {
+  changePassword,
+  forgotPassword,
+  getMe,
+  getUserProfile,
+  listUsers,
+  loginUser,
+  logoutUser,
+  registerUser,
+  updateProfile,
+};

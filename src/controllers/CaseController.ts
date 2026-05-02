@@ -6,6 +6,7 @@ import {
   getCaseById,
   getCasesByPriority,
   getCasesByStatus,
+  getCasesForMember,
   updateCase,
 } from '../models/CaseModel.js';
 import { getUserById } from '../models/UserModel.js';
@@ -62,7 +63,12 @@ async function listCases(req: Request, res: Response): Promise<void> {
 
   const status = req.query.status as string | undefined;
   const priority = req.query.priority as string | undefined;
-
+  //members can only see the cases they are assigned to
+  if (req.session.role !== 'supervisor') {
+    const cases = await getCasesForMember(req.session.userId);
+    res.json({ cases });
+    return;
+  }
   if (status) {
     const cases = await getCasesByStatus(status);
     res.json({ cases });

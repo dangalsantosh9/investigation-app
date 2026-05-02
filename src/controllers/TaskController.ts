@@ -150,7 +150,16 @@ async function editTask(req: Request, res: Response): Promise<void> {
     res.status(400).json(result.error.flatten());
     return;
   }
-  const { title, description, dueDate } = result.data;
+  const { title, description, dueDate, assignedToId } = result.data;
+
+  let assignedUser = null;
+  if (assignedToId) {
+    assignedUser = await getUserById(assignedToId);
+    if (!assignedUser) {
+      res.status(404).json({ error: 'Assigned user not found' });
+      return;
+    }
+  }
 
   try {
     const updatedTask = await updateTask(
@@ -158,6 +167,7 @@ async function editTask(req: Request, res: Response): Promise<void> {
       title,
       description ?? '',
       dueDate ? new Date(dueDate) : null,
+      assignedUser,
     );
     if (!updatedTask) {
       res.status(404).json({ error: 'Task not found' });

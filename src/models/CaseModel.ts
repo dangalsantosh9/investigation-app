@@ -36,6 +36,28 @@ async function getAllCases(): Promise<Case[]> {
   });
 }
 
+async function getCasesForMember(userId: string): Promise<Case[]> {
+  return await caseRepository
+    .createQueryBuilder('case')
+    .where(
+      `case.id IN (
+        SELECT task."caseEntityId"
+        FROM task
+        WHERE task."assignedToId" = :userId
+      )`,
+      { userId },
+    )
+    .select([
+      'case.id',
+      'case.title',
+      'case.status',
+      'case.priority',
+      'case.dueDate',
+      'case.createdAt',
+    ])
+    .getMany();
+}
+
 async function getCaseById(id: string): Promise<Case | null> {
   return await caseRepository.findOne({
     where: { id },
@@ -122,5 +144,6 @@ export {
   getCaseById,
   getCasesByPriority,
   getCasesByStatus,
+  getCasesForMember,
   updateCase,
 };

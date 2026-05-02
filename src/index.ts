@@ -1,6 +1,10 @@
+import cors from 'cors';
 import express, { Express } from 'express';
 import './config.js'; // do not remove this line
 import {
+  changePassword,
+  forgotPassword,
+  getMe,
   getUserProfile,
   listUsers,
   loginUser,
@@ -39,6 +43,13 @@ import { sessionMiddleware } from './sessionConfig.js';
 
 const app: Express = express();
 
+app.use(
+  cors({
+    origin: 'http://localhost:5173',
+    credentials: true,
+  }),
+);
+
 app.use(sessionMiddleware); // Setup session management middleware
 app.use(express.json()); // Setup JSON body parsing middleware
 app.use(express.urlencoded({ extended: false })); // Setup urlencoded (HTML Forms) body parsing middleware
@@ -52,11 +63,14 @@ app.use(express.static('public', { extensions: ['html'] }));
 app.post('/register', registerUser);
 app.post('/login', loginUser);
 app.delete('/logout', logoutUser);
+app.get('/api/me', getMe);
+app.post('/forgot-Password', forgotPassword);
 
 // -- User Routes --
 app.get('/users', listUsers);
 app.get('/users/:userId/profile', getUserProfile);
 app.patch('/users/:userId/profile', updateProfile);
+app.patch('/users/:userId/password', changePassword);
 // case routes
 app.post('/cases', createNewCase);
 app.get('/cases', listCases);

@@ -10,6 +10,7 @@ const updateTaskSchema = z.object({
   title: z.string().min(1, 'Title is required'),
   description: z.string().optional(),
   dueDate: z.string().optional(),
+  assignedToId: z.string().optional(),
 });
 
 const assignTaskSchema = z.object({
