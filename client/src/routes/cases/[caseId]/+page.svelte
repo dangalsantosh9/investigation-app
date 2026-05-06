@@ -30,6 +30,7 @@
   let tasks: Task[] = $state([]);
   let loading = $state(true);
   let closing = $state(false);
+  let reopening = $state(false); // ADDED
 
   onMount(async () => {
     if (!user) {
@@ -80,6 +81,22 @@
     }
     closing = false;
   }
+
+  // ADDED: reopen a closed case
+  async function reopenCase(): Promise<void> {
+    if (!confirm('Reopen this investigation?')) return;
+    reopening = true;
+
+    const result = await patch(`/cases/${caseId}/reopen`, {});
+    if (result.ok) {
+      addToast('Investigation reopened', 'success');
+      const refreshed = await get<any>(`/cases/${caseId}`);
+      if (refreshed.ok) caseData = refreshed.data.case ?? refreshed.data;
+    } else {
+      addToast('Failed to reopen investigation', 'error');
+    }
+    reopening = false;
+  }
 </script>
 
 {#if loading}
@@ -101,13 +118,16 @@
 
   <div style="display: flex; gap: 1rem; flex-wrap: wrap; margin-bottom: 1.5rem;">
     <a href="/cases" role="button" class="outline secondary">← Back</a>
-    {#if caseData.status !== 'closed'}
-      <a href="/cases/{caseId}/new-task" role="button">+ Add Task</a> <!-- CHANGED: hidden when closed -->
+
+    {#if user?.role === 'supervisor' && caseData.status !== 'closed'}
+      <a href="/cases/{caseId}/new-task" role="button">+ Add Task</a>
     {/if}
-    {#if caseData.status !== 'closed'}
+
+    {#if user?.role === 'supervisor' && caseData.status !== 'closed'}
       <a href="/cases/{caseId}/edit" role="button" class="outline">Edit</a>
     {/if}
-    {#if caseData.status !== 'closed'}
+
+    {#if user?.role === 'supervisor' && caseData.status !== 'closed'}
       <button
         class="outline contrast"
         onclick={closeCase}
@@ -117,6 +137,18 @@
         {closing ? 'Closing...' : 'Close Investigation'}
       </button>
     {/if}
+
+    {#if user?.role === 'supervisor' && caseData.status === 'closed'} <!-- ADDED -->
+      <button
+        class="outline"
+        onclick={reopenCase}
+        aria-busy={reopening}
+        disabled={reopening}
+      >
+        {reopening ? 'Reopening...' : 'Reopen Investigation'}
+      </button>
+    {/if} <!-- ADDED -->
+
     <a href="/cases/{caseId}/timeline" role="button" class="outline">View Timeline</a>
   </div>
 

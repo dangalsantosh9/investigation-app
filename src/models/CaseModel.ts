@@ -137,6 +137,16 @@ async function closeCase(id: string): Promise<Case | null> {
   return await caseRepository.save(existingCase);
 }
 
+async function reopenCase(id: string): Promise<Case | null> {
+  const existingCase = await caseRepository.findOne({ where: { id } });
+  if (!existingCase) {
+    return null;
+  }
+  existingCase.status = 'open';
+  existingCase.closedAt = null!;
+  return await caseRepository.save(existingCase);
+}
+
 export {
   closeCase,
   createCase,
@@ -145,5 +155,6 @@ export {
   getCasesByPriority,
   getCasesByStatus,
   getCasesForMember,
+  reopenCase,
   updateCase,
 };

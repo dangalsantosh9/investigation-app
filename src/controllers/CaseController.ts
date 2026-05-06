@@ -7,6 +7,7 @@ import {
   getCasesByPriority,
   getCasesByStatus,
   getCasesForMember,
+  reopenCase,
   updateCase,
 } from '../models/CaseModel.js';
 import { getUserById } from '../models/UserModel.js';
@@ -180,4 +181,32 @@ async function closeCaseById(req: Request, res: Response): Promise<void> {
   res.json({ case: closedCase });
 }
 
-export { closeCaseById, createNewCase, editCase, getCase, listCases };
+async function reopenCaseById(req: Request, res: Response): Promise<void> {
+  if (!req.session.userId) {
+    res.sendStatus(401);
+    return;
+  }
+
+  if (req.session.role !== 'supervisor') {
+    res.sendStatus(403);
+    return;
+  }
+
+  const caseId = req.params.caseId as string;
+  const existingCase = await getCaseById(caseId);
+
+  if (!existingCase) {
+    res.status(404).json({ error: 'Case not found' });
+    return;
+  }
+
+  if (existingCase.status !== 'closed') {
+    res.status(400).json({ error: 'Case is not closed' });
+    return;
+  }
+
+  const reopenedCase = await reopenCase(caseId);
+  res.json({ case: reopenedCase });
+}
+
+export { closeCaseById, createNewCase, editCase, getCase, listCases, reopenCaseById };

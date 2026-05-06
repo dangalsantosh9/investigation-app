@@ -19,6 +19,7 @@ import {
   editCase,
   getCase,
   listCases,
+  reopenCaseById,
 } from './controllers/CaseController.js';
 
 import { getAssignedTasks, getDashboardSummary } from './controllers/DashboardController.js';
@@ -77,6 +78,7 @@ app.get('/cases', listCases);
 app.get('/cases/:caseId', getCase);
 app.patch('/cases/:caseId', editCase);
 app.patch('/cases/:caseId/close', closeCaseById);
+app.patch('/cases/:caseId/reopen', reopenCaseById);
 app.get('/cases/:caseId/timeline', getCaseTimeline);
 
 // task routes
