@@ -1,4 +1,6 @@
 import { Request, Response } from 'express';
+import { AppDataSource } from '../dataSource.js';
+import { Task } from '../entities/Task.js';
 import { getCaseById } from '../models/CaseModel.js';
 import {
   assignTask,
@@ -204,4 +206,40 @@ async function updateTaskStatus(req: Request, res: Response): Promise<void> {
   res.json({ task: updatedTask });
 }
 
-export { assignTaskToUser, createNewTask, editTask, getTask, listTasksForCase, updateTaskStatus };
+async function getAllTasks(req: Request, res: Response): Promise<void> {
+  if (!req.session.userId) {
+    res.sendStatus(401);
+    return;
+  }
+  if (req.session.role !== 'supervisor') {
+    res.sendStatus(403);
+    return;
+  }
+
+  const taskRepo = AppDataSource.getRepository(Task);
+  const tasks = await taskRepo.find({
+    relations: { assignedTo: true, caseEntity: true },
+    select: {
+      id: true,
+      title: true,
+      status: true,
+      dueDate: true,
+      createdAt: true,
+      assignedTo: { id: true, fullName: true },
+      caseEntity: { id: true, title: true },
+    },
+    order: { createdAt: 'DESC' },
+  });
+
+  res.json({ tasks });
+}
+
+export {
+  assignTaskToUser,
+  createNewTask,
+  editTask,
+  getAllTasks,
+  getTask,
+  listTasksForCase,
+  updateTaskStatus,
+};

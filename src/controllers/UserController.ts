@@ -217,8 +217,49 @@ async function forgotPassword(req: Request, res: Response): Promise<void> {
   res.json({ message: 'Password reset successfully' });
 }
 
+// ADDED: change user role
+async function changeUserRole(req: Request, res: Response): Promise<void> {
+  if (!req.session.userId) {
+    res.sendStatus(401);
+    return;
+  }
+
+  if (req.session.role !== 'supervisor') {
+    res.sendStatus(403);
+    return;
+  }
+
+  const userId = req.params.userId as string;
+  const { role } = req.body;
+
+  if (!['supervisor', 'member'].includes(role)) {
+    res.status(400).json({ error: 'Invalid role' });
+    return;
+  }
+
+  const user = await getUserById(userId);
+  if (!user) {
+    res.status(404).json({ error: 'User not found' });
+    return;
+  }
+
+  const { AppDataSource } = await import('../dataSource.js');
+  const { User } = await import('../entities/User.js');
+  const userRepo = AppDataSource.getRepository(User);
+  const fullUser = await userRepo.findOne({ where: { id: userId } });
+  if (!fullUser) {
+    res.status(404).json({ error: 'User not found' });
+    return;
+  }
+  fullUser.role = role;
+  await userRepo.save(fullUser);
+
+  res.json({ message: `Role updated to ${role}`, userId, role });
+}
+
 export {
   changePassword,
+  changeUserRole,
   forgotPassword,
   getMe,
   getUserProfile,

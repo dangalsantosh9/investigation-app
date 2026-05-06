@@ -1,0 +1,199 @@
+﻿<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ShrinkRay Deploy Guide</title>
+  <link rel="stylesheet" href="https://stackedit.io/style.css" />
+  <style>
+  @media print {
+    .page, .page-break { break-after: page; }
+}
+	body > div.stackedit__html {
+	max-width: 900px !important;
+	}
+	.warning {color: red;}
+  .checkpoint {
+    border: 3px solid green;
+    padding-top: 25px;
+    padding-left: 10px;
+    padding-right: 10px;
+    padding-bottom: 10px;
+    margin: 0;
+    position: relative;
+    border-radius: 10px;
+    color: rgb(0, 93, 3);
+    background-color: rgb(190, 242, 190);
+  }
+      .checkpoint::before {
+        position: absolute;
+        content: "✅ Checkpoint";
+        left: 5px;
+        top: 0px;
+        font-weight: bold;
+        font-size: 1.25rem;
+    }
+  .note {
+    border: 3px solid rgb(12, 135, 201);
+    padding-top: 25px;
+    padding-left: 10px;
+    padding-right: 10px;
+    padding-bottom: 10px;
+    margin: 0;
+    background-color: rgb(217, 242, 255);
+    position: relative;
+    border-radius: 10px;
+    color: rgb(0, 60, 93);
+	}
+    .note::before {
+        position: absolute;
+        content: "📝 Note";
+        left: 5px;
+        top: 0px;
+        font-weight: bold;
+        font-size: 1.25rem;
+    }
+	.filename {
+	font-family: monospace;
+	font-weight: bold;
+}
+iframe {
+  border: none;
+}
+	</style>
+</head>
+
+<body class="stackedit">
+  <div class="stackedit__html"><h1 id="deploying-shrink-ray">Deploying Shrink Ray</h1>
+<p>Before you continue with these instructions you need to create your Digital Ocean droplet and set up your DNS records for your domain name.</p>
+<h2 id="droplet-setup-script">Droplet Setup Script</h2>
+<p>When creating your droplet, paste the following into the <strong>User Data</strong> field under <strong>Advanced Options</strong>. It will automatically run on first boot and handle software installation and firewall configuration for you.</p>
+<pre class=" language-bash"><code class="prism  language-bash"><span class="token shebang important">#!/bin/bash</span>
+
+<span class="token function">export</span> DEBIAN_FRONTEND<span class="token operator">=</span>noninteractive
+APT_OPTS<span class="token operator">=</span><span class="token string">'-o Dpkg::Options::=--force-confold -o Dpkg::Options::=--force-confdef'</span>
+
+<span class="token comment"># Install Caddy</span>
+<span class="token function">apt-get</span> <span class="token function">install</span> -y debian-keyring debian-archive-keyring apt-transport-https curl
+curl -1sLf <span class="token string">'https://dl.cloudsmith.io/public/caddy/stable/gpg.key'</span> <span class="token operator">|</span> gpg --dearmor -o /usr/share/keyrings/caddy-stable-archive-keyring.gpg
+curl -1sLf <span class="token string">'https://dl.cloudsmith.io/public/caddy/stable/debian.deb.txt'</span> <span class="token operator">|</span> <span class="token function">tee</span> /etc/apt/sources.list.d/caddy-stable.list
+<span class="token function">apt-get</span> update
+<span class="token function">apt-get</span> <span class="token variable">$APT_OPTS</span> -y upgrade
+<span class="token function">apt-get</span> <span class="token function">install</span> -y caddy
+
+<span class="token comment"># Clear the default Caddyfile</span>
+<span class="token operator">&gt;</span>/etc/caddy/Caddyfile
+
+<span class="token comment"># Install Node.js 24</span>
+curl -fsSL https://deb.nodesource.com/setup_24.x <span class="token operator">|</span> <span class="token function">bash</span> -
+<span class="token function">apt-get</span> <span class="token function">install</span> -y nodejs
+
+<span class="token comment"># Install PM2</span>
+<span class="token function">npm</span> <span class="token function">install</span> pm2 -g
+
+<span class="token comment"># Configure firewall</span>
+ufw allow OpenSSH
+ufw allow 80
+ufw allow 443
+ufw allow 443/udp
+ufw --force <span class="token function">enable</span>
+</code></pre>
+<p>Once your droplet finishes booting (give it a few minutes), SSH in and verify the installation:</p>
+<p>First this command so you can wait until the startup script is finished running before you try any other commands:</p>
+<pre class=" language-bash"><code class="prism  language-bash"><span class="token function">sudo</span> cloud-init status --wait
+</code></pre>
+<p>It will output <code>.......</code> until you’ll finally see <code>status: done</code>. For example this was my output (it can take a while for the startup script to finish running):</p>
+<pre><code>root@webDevSpring26:~# sudo cloud-init status --wait
+....................................................status: done
+</code></pre>
+<p>When you see the output <code>status: done</code> then you can run:</p>
+<pre class=" language-bash"><code class="prism  language-bash">node --version
+caddy version
+<span class="token function">sudo</span> ufw status
+</code></pre>
+<p>Your output should be something like:</p>
+<pre class=" language-ruby"><code class="prism  language-ruby">root<span class="token variable">@shrinkRayTest</span><span class="token punctuation">:</span><span class="token operator">~</span><span class="token comment"># node --version</span>
+v24<span class="token number">.15</span><span class="token punctuation">.</span><span class="token number">0</span>
+root<span class="token variable">@shrinkRayTest</span><span class="token punctuation">:</span><span class="token operator">~</span><span class="token comment"># caddy version</span>
+v2<span class="token number">.11</span><span class="token punctuation">.</span><span class="token number">2</span> h1<span class="token symbol">:iOlpsSiSKqEW</span><span class="token operator">+</span><span class="token constant">SIXrcZsZ</span><span class="token operator">/</span><span class="token constant">NO74SzB</span><span class="token operator">/</span>ycqqvAIEfIm64<span class="token operator">=</span>
+root<span class="token variable">@shrinkRayTest</span><span class="token punctuation">:</span><span class="token operator">~</span><span class="token comment"># sudo ufw status</span>
+<span class="token constant">Status</span><span class="token punctuation">:</span> active
+
+<span class="token constant">To</span>                         <span class="token constant">Action</span>      <span class="token constant">From</span>
+<span class="token operator">--</span>                         <span class="token operator">--</span><span class="token operator">--</span><span class="token operator">--</span>      <span class="token operator">--</span><span class="token operator">--</span>
+<span class="token constant">OpenSSH</span>                    <span class="token constant">ALLOW</span>       <span class="token constant">Anywhere</span>
+<span class="token number">80</span>                         <span class="token constant">ALLOW</span>       <span class="token constant">Anywhere</span>
+<span class="token number">443</span>                        <span class="token constant">ALLOW</span>       <span class="token constant">Anywhere</span>
+<span class="token number">443</span><span class="token operator">/</span>udp                    <span class="token constant">ALLOW</span>       <span class="token constant">Anywhere</span>
+<span class="token function">OpenSSH</span> <span class="token punctuation">(</span>v6<span class="token punctuation">)</span>               <span class="token constant">ALLOW</span>       <span class="token function">Anywhere</span> <span class="token punctuation">(</span>v6<span class="token punctuation">)</span>
+<span class="token function">80</span> <span class="token punctuation">(</span>v6<span class="token punctuation">)</span>                    <span class="token constant">ALLOW</span>       <span class="token function">Anywhere</span> <span class="token punctuation">(</span>v6<span class="token punctuation">)</span>
+<span class="token function">443</span> <span class="token punctuation">(</span>v6<span class="token punctuation">)</span>                   <span class="token constant">ALLOW</span>       <span class="token function">Anywhere</span> <span class="token punctuation">(</span>v6<span class="token punctuation">)</span>
+<span class="token number">443</span><span class="token operator">/</span><span class="token function">udp</span> <span class="token punctuation">(</span>v6<span class="token punctuation">)</span>               <span class="token constant">ALLOW</span>       <span class="token function">Anywhere</span> <span class="token punctuation">(</span>v6<span class="token punctuation">)</span>
+</code></pre>
+<h1 class="warning">Stop here if you don't have a domain name! You need to set up your A records before continuing.</h1>
+<h2 id="clone-your-project-repository">Clone Your Project Repository</h2>
+<p>Copy your project repository from github to your server using the <code>git clone</code> command. For this example you’ll clone my project repo but you should replace it with your own project later.</p>
+<pre class=" language-bash"><code class="prism  language-bash"><span class="token comment"># Clone project</span>
+<span class="token function">git</span> clone https://github.com/csaldivar-astate/shrinkRay.git /root/shrinkRay
+</code></pre>
+<h2 id="create-your-environment-file">Create Your Environment File</h2>
+<p><code>cd</code> into the project directory:</p>
+<pre class=" language-bash"><code class="prism  language-bash"><span class="token function">cd</span> ~/shrinkRay
+</code></pre>
+<p>Since you are running in a new environment you need to create your <code>.env</code> file.</p>
+<p>Generate a random secret:</p>
+<pre class=" language-bash"><code class="prism  language-bash">openssl rand -hex 16
+</code></pre>
+<p>Then create the file:</p>
+<pre class=" language-bash"><code class="prism  language-bash"><span class="token function">nano</span> .env
+</code></pre>
+<p>Add your environment variables:</p>
+<pre><code>PORT="8000"
+COOKIE_SECRET="PUT_YOUR_RANDOM_HEX_STRING_HERE"
+DATABASE_NAME="whateverYouCallYourDatabase.sqlite"
+NODE_ENV="production"
+</code></pre>
+<p>Save and quit <code>nano</code>:</p>
+<ul>
+<li><code>ctrl</code> + <code>x</code></li>
+<li>Type the letter <code>y</code></li>
+<li><code>enter</code></li>
+</ul>
+<div class="note">Remember you should <strong>never</strong> put your <code>.env</code> file in source control. The <code>COOKIE_SECRET</code> should be the random hex string you generated above.</div>
+<h2 id="install-dependencies-and-build">Install Dependencies and Build</h2>
+<pre class=" language-bash"><code class="prism  language-bash"><span class="token function">npm</span> <span class="token function">install</span>
+<span class="token function">npm</span> run build
+</code></pre>
+<div class="note">This compiles your project with a higher level of optimization than <code>npm run compile</code>. We only use this when building the application for production.</div>
+<h2 id="configure-caddy-as-a-reverse-proxy">Configure Caddy as a Reverse Proxy</h2>
+<p>Caddy’s configuration lives in a file called a <code>Caddyfile</code>. Unlike NGINX, there is no separate TLS setup step: Caddy automatically obtains and renews a free certificate from Let’s Encrypt the first time a request comes in for your domain.</p>
+<p>Open the default Caddyfile for editing:</p>
+<pre class=" language-bash"><code class="prism  language-bash"><span class="token function">sudo</span> <span class="token function">nano</span> /etc/caddy/Caddyfile
+</code></pre>
+<h2><em>All of these examples use <code>redWolves.dev</code> as an example but it should be replaced with <strong>YOUR</strong> domain name.</em></h2>
+<p>Replace the file’s entire contents with the following. Replace <code>redWolves.dev</code> with your domain name and <code>8000</code> with whatever port you set in your <code>.env</code>.</p>
+<pre><code>redWolves.dev, www.redWolves.dev {
+    reverse_proxy localhost:8000
+}
+</code></pre>
+<p>Save and quit:</p>
+<ul>
+<li><code>ctrl</code> + <code>x</code></li>
+<li>Type the letter <code>y</code></li>
+<li><code>enter</code></li>
+</ul>
+<p>Then reload Caddy with this command:</p>
+<pre class=" language-bash"><code class="prism  language-bash"><span class="token function">sudo</span> systemctl reload caddy
+</code></pre>
+<h2 id="run-the-server-with-pm2">Run the Server with PM2</h2>
+<p>Start your application server with PM2 so it stays running after you disconnect your SSH session:</p>
+<pre class=" language-bash"><code class="prism  language-bash">pm2 start dist/index.js
+</code></pre>
+<h2 id="check-that-it-works">Check That It Works</h2>
+<p>Visit your domain name in a browser. The URL bar should show a secure HTTPS connection. Caddy provisions the certificate on the first request, so give it a few seconds.</p>
+<p>Your application is live!</p>
+</div>
+</body>
+
+</html>

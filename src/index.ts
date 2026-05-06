@@ -3,6 +3,7 @@ import express, { Express } from 'express';
 import './config.js'; // do not remove this line
 import {
   changePassword,
+  changeUserRole,
   forgotPassword,
   getMe,
   getUserProfile,
@@ -32,12 +33,18 @@ import {
   assignTaskToUser,
   createNewTask,
   editTask,
+  getAllTasks,
   getTask,
   listTasksForCase,
   updateTaskStatus,
 } from './controllers/TaskController.js';
 import { getCaseTimeline } from './controllers/TimelineController.js';
-import { editTaskUpdate, getTaskUpdates, postUpdate } from './controllers/UpdateController.js';
+import {
+  editTaskUpdate,
+  getRecentUpdates,
+  getTaskUpdates,
+  postUpdate,
+} from './controllers/UpdateController.js';
 import { initializeDatabase } from './dataSource.js';
 import { upload } from './middleware/upload.js';
 import { sessionMiddleware } from './sessionConfig.js';
@@ -72,6 +79,7 @@ app.get('/users', listUsers);
 app.get('/users/:userId/profile', getUserProfile);
 app.patch('/users/:userId/profile', updateProfile);
 app.patch('/users/:userId/password', changePassword);
+app.patch('/users/:userId/role', changeUserRole);
 // case routes
 app.post('/cases', createNewCase);
 app.get('/cases', listCases);
@@ -84,6 +92,7 @@ app.get('/cases/:caseId/timeline', getCaseTimeline);
 // task routes
 app.post('/cases/:caseId/tasks', createNewTask);
 app.get('/cases/:caseId/tasks', listTasksForCase);
+app.get('/tasks/all', getAllTasks);
 app.get('/tasks/:taskId', getTask);
 app.patch('/tasks/:taskId', editTask);
 app.patch('/tasks/:taskId/assign', assignTaskToUser);
@@ -93,6 +102,7 @@ app.patch('/tasks/:taskId/status', updateTaskStatus);
 app.post('/tasks/:taskId/updates', postUpdate);
 app.get('/tasks/:taskId/updates', getTaskUpdates);
 app.patch('/updates/:updateId', editTaskUpdate);
+app.get('/updates/recent', getRecentUpdates);
 
 // -- Evidence Routes --
 app.post('/tasks/:taskId/evidence', upload.single('file'), uploadEvidence);

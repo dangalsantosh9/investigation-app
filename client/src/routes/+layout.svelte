@@ -33,8 +33,11 @@
     </ul>
     <ul>
       {#if user}
-        <li><a href="/dashboard">Dashboard</a></li> <!-- CHANGED: was /cases -->
+        <li><a href="/dashboard">Dashboard</a></li>
         <li><a href="/cases">Investigations</a></li>
+        {#if user.role === 'supervisor'} <!-- ADDED: only supervisors see Manage Users -->
+          <li><a href="/users">Manage Users</a></li>
+        {/if} <!-- ADDED -->
         <li><a href="/profile">Profile</a></li>
         <li>
           <button onclick={handleLogout} class="outline secondary">

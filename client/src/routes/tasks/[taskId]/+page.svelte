@@ -79,7 +79,6 @@
       task = taskResult.data.task ?? taskResult.data;
       newStatus = task.status;
 
-      // ADDED: check if parent case is closed
       if (task.caseEntity?.id) {
         const caseResult = await get<any>(`/cases/${task.caseEntity.id}`);
         if (caseResult.ok) {
@@ -259,9 +258,10 @@
 
   <p>{task.description}</p>
 
-  <!-- CHANGED: hide Edit Task and Change Status if case is closed -->
   {#if !caseClosed}
-    <a href="/tasks/{taskId}/edit" role="button" class="outline secondary" style="margin-bottom: 1rem; display: inline-block;">Edit Task</a>
+    {#if user?.role === 'supervisor'} <!-- CHANGED: only supervisors can edit task -->
+      <a href="/tasks/{taskId}/edit" role="button" class="outline secondary" style="margin-bottom: 1rem; display: inline-block;">Edit Task</a>
+    {/if}
 
     <details>
       <summary>Change Status</summary>
@@ -286,7 +286,6 @@
   <section>
     <h2>Progress Updates</h2>
 
-    <!-- ADDED: hide post update form when case is closed -->
     {#if !caseClosed}
       <form onsubmit={postUpdate}>
         <label>
@@ -302,7 +301,7 @@
           {postingUpdate ? 'Posting...' : 'Post Update'}
         </button>
       </form>
-    {/if} <!-- ADDED -->
+    {/if}
 
     {#if updates.length === 0}
       <p><em>No updates yet.</em></p>
@@ -313,7 +312,7 @@
             <strong>{u.createdBy.fullName}</strong>
             <small> — {new Date(u.createdAt).toLocaleString()}</small>
             {#if u.editedAt}<small> (edited)</small>{/if}
-            {#if u.createdBy.fullName === user?.fullName && !caseClosed} <!-- CHANGED: added !caseClosed -->
+            {#if u.createdBy.fullName === user?.fullName && !caseClosed}
               <button
                 class="outline secondary"
                 style="margin-left: 1rem; padding: 0.2rem 0.5rem; font-size: 0.8rem;"
@@ -353,7 +352,6 @@
   <section>
     <h2>Evidence</h2>
 
-    <!-- ADDED: hide upload form when case is closed -->
     {#if !caseClosed}
       <form onsubmit={uploadEvidence}>
         <label>
@@ -393,7 +391,7 @@
           {uploading ? 'Saving...' : evidenceType === 'file' ? 'Upload Evidence' : 'Add Note'}
         </button>
       </form>
-    {/if} <!-- ADDED -->
+    {/if}
 
     {#if evidence.length === 0}
       <p><em>No evidence uploaded yet.</em></p>

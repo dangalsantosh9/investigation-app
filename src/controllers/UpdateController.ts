@@ -1,4 +1,6 @@
 import { Request, Response } from 'express';
+import { AppDataSource } from '../dataSource.js';
+import { TaskUpdate } from '../entities/Update.js';
 import { getTaskById } from '../models/TaskModel.js';
 import {
   createUpdate,
@@ -72,4 +74,33 @@ async function editTaskUpdate(req: Request, res: Response): Promise<void> {
   const updated = await editUpdate(updateId, message);
   res.json({ update: updated });
 }
-export { postUpdate, getTaskUpdates, editTaskUpdate };
+
+async function getRecentUpdates(req: Request, res: Response): Promise<void> {
+  if (!req.session.userId) {
+    res.sendStatus(401);
+    return;
+  }
+  if (req.session.role !== 'supervisor') {
+    res.sendStatus(403);
+    return;
+  }
+
+  const updateRepo = AppDataSource.getRepository(TaskUpdate);
+  const updates = await updateRepo.find({
+    relations: { createdBy: true, task: true },
+    select: {
+      id: true,
+      message: true,
+      createdAt: true,
+      editedAt: true,
+      createdBy: { id: true, fullName: true },
+      task: { id: true, title: true },
+    },
+    order: { createdAt: 'DESC' },
+    take: 10, // ADDED: only last 10 updates
+  });
+
+  res.json({ updates });
+}
+
+export { editTaskUpdate, getRecentUpdates, getTaskUpdates, postUpdate };
